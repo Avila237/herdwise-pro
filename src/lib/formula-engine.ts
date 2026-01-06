@@ -320,6 +320,16 @@ class FormulaParser {
         return args.reduce((sum, val) => sum + (Number(val) || 0), 0);
         
       case 'COUNT':
+        // COUNT(collection, filter?) - conta elementos de uma coleção com filtro opcional
+        if (typeof args[0] === 'string') {
+          const collection = this.getCollection(args[0]);
+          if (!collection) return 0;
+          
+          if (args[1]) {
+            return this.filterCollection(collection, String(args[1])).length;
+          }
+          return collection.length;
+        }
         if (Array.isArray(args[0])) {
           return args[0].filter(v => v != null).length;
         }
@@ -333,6 +343,24 @@ class FormulaParser {
         return 0;
         
       case 'AVERAGE':
+        // AVERAGE(collection, field, filter?)
+        if (typeof args[0] === 'string') {
+          const collection = this.getCollection(args[0]);
+          if (!collection) return 0;
+          
+          let items = collection;
+          let field = args[1];
+          
+          if (args[2]) {
+            items = this.filterCollection(collection, String(args[2]));
+          }
+          
+          const values = items
+            .map(item => this.getItemField(item, field))
+            .filter(v => typeof v === 'number' && !isNaN(v));
+          
+          return values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+        }
         if (Array.isArray(args[0])) {
           const nums = args[0].filter(v => typeof v === 'number');
           return nums.length > 0 ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
@@ -395,6 +423,99 @@ class FormulaParser {
       default:
         throw new Error(`Unknown function: ${name}`);
     }
+  }
+
+  private getCollection(name: string): Record<string, any>[] | null {
+    switch (name.toLowerCase()) {
+      case 'animals':
+        return this.context.animals || null;
+      case 'events':
+        return this.context.events || null;
+      default:
+        return null;
+    }
+  }
+
+  private getItemField(item: Record<string, any>, field: string): any {
+    return item[field] ?? null;
+  }
+
+  private filterCollection(collection: Record<string, any>[], filter: string): Record<string, any>[] {
+    return collection.filter(item => {
+      try {
+        return this.evaluateFilter(item, filter);
+      } catch {
+        return false;
+      }
+    });
+  }
+
+  private evaluateFilter(item: Record<string, any>, filter: string): boolean {
+    // Parse simple conditions like "reproductive_status = 'prenha'"
+    // Supports: =, !=, <, >, <=, >=, IS NULL, IS NOT NULL, AND, OR
+    
+    // Handle AND/OR
+    const andParts = filter.split(/\s+AND\s+/i);
+    if (andParts.length > 1) {
+      return andParts.every(part => this.evaluateFilter(item, part.trim()));
+    }
+    
+    const orParts = filter.split(/\s+OR\s+/i);
+    if (orParts.length > 1) {
+      return orParts.some(part => this.evaluateFilter(item, part.trim()));
+    }
+    
+    // Handle IS NULL / IS NOT NULL
+    const isNullMatch = filter.match(/^(\w+)\s+IS\s+NULL$/i);
+    if (isNullMatch) {
+      return item[isNullMatch[1]] == null;
+    }
+    
+    const isNotNullMatch = filter.match(/^(\w+)\s+IS\s+NOT\s+NULL$/i);
+    if (isNotNullMatch) {
+      return item[isNotNullMatch[1]] != null;
+    }
+    
+    // Handle comparisons
+    const compMatch = filter.match(/^(\w+)\s*(=|!=|<>|<=|>=|<|>)\s*(.+)$/);
+    if (compMatch) {
+      const [, fieldName, op, valueStr] = compMatch;
+      const fieldValue = item[fieldName];
+      
+      // Parse value
+      let compareValue: any = valueStr.trim();
+      if (compareValue.startsWith("'") && compareValue.endsWith("'")) {
+        compareValue = compareValue.slice(1, -1);
+      } else if (compareValue.startsWith('"') && compareValue.endsWith('"')) {
+        compareValue = compareValue.slice(1, -1);
+      } else if (compareValue.toLowerCase() === 'true') {
+        compareValue = true;
+      } else if (compareValue.toLowerCase() === 'false') {
+        compareValue = false;
+      } else if (!isNaN(Number(compareValue))) {
+        compareValue = Number(compareValue);
+      }
+      
+      switch (op) {
+        case '=':
+          return fieldValue === compareValue;
+        case '!=':
+        case '<>':
+          return fieldValue !== compareValue;
+        case '<':
+          return fieldValue < compareValue;
+        case '>':
+          return fieldValue > compareValue;
+        case '<=':
+          return fieldValue <= compareValue;
+        case '>=':
+          return fieldValue >= compareValue;
+        default:
+          return false;
+      }
+    }
+    
+    return false;
   }
 }
 
