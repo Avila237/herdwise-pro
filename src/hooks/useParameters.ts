@@ -117,18 +117,24 @@ export function useParameters(options: UseParametersOptions = {}) {
     }
   };
 
-  const getParametersMap = (): Record<string, string | number | boolean> => {
+  const getParametersMap = useCallback((): Record<string, string | number | boolean> => {
     const map: Record<string, string | number | boolean> = {};
     parameters.forEach(param => {
       if (param.is_current) {
-        const value = getParameterValue(param.name);
-        if (value !== null) {
-          map[param.name] = value;
+        switch (param.value_type) {
+          case 'number':
+            map[param.name] = parseFloat(param.value);
+            break;
+          case 'boolean':
+            map[param.name] = param.value === 'true';
+            break;
+          default:
+            map[param.name] = param.value;
         }
       }
     });
     return map;
-  };
+  }, [parameters]);
 
   useEffect(() => {
     fetchParameters();

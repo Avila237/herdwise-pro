@@ -8,6 +8,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import AnimalsPage from "./pages/AnimalsPage";
 import EventsPage from "./pages/EventsPage";
+import HistoryPage from "./pages/HistoryPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
@@ -26,7 +27,7 @@ const App = () => (
               <Route path="/animals" element={<AnimalsPage />} />
               <Route path="/events" element={<EventsPage />} />
               <Route path="/ia-iatf" element={<EventsPage />} />
-              <Route path="/history" element={<Dashboard />} />
+              <Route path="/history" element={<HistoryPage />} />
               <Route path="/metrics" element={<Dashboard />} />
               <Route path="/import" element={<Dashboard />} />
               <Route path="/settings" element={<SettingsPage />} />
