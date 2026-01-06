@@ -3,18 +3,18 @@ import { useFarmContext } from '@/hooks/useFarm';
 import { useLots } from '@/hooks/useLots';
 import { useParameters } from '@/hooks/useParameters';
 import { LoadingPage } from '@/components/common/LoadingSpinner';
+import { ParameterEditor } from '@/components/settings/ParameterEditor';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash2, Settings2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 
 export default function SettingsPage() {
   const { toast } = useToast();
   const { currentFarm, farms, createFarm, loading: farmLoading } = useFarmContext();
   const { lots, createLot, deleteLot } = useLots({ farmId: currentFarm?.id });
-  const { parameters, setParameter } = useParameters({ farmId: currentFarm?.id });
+  const { parameters, setParameter, loading: paramsLoading } = useParameters({ farmId: currentFarm?.id });
 
   const [newFarmName, setNewFarmName] = useState('');
   const [newLotName, setNewLotName] = useState('');
@@ -35,6 +35,10 @@ export default function SettingsPage() {
       toast({ title: 'Lote criado com sucesso' });
       setNewLotName('');
     }
+  };
+
+  const handleSaveParameter = async (name: string, value: string) => {
+    return await setParameter(name, value, 'number');
   };
 
   if (farmLoading) {
@@ -116,26 +120,12 @@ export default function SettingsPage() {
         </Card>
       )}
 
-      {/* Parameters */}
-      {currentFarm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Parâmetros</CardTitle>
-            <CardDescription>Configure os parâmetros reprodutivos</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="p-4 rounded-lg border">
-                <Label className="text-muted-foreground">DEL Máximo</Label>
-                <p className="text-2xl font-bold">150 dias</p>
-              </div>
-              <div className="p-4 rounded-lg border">
-                <Label className="text-muted-foreground">Janela Pós-IA</Label>
-                <p className="text-2xl font-bold">45 dias</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Parameter Editor */}
+      {currentFarm && !paramsLoading && (
+        <ParameterEditor 
+          parameters={parameters} 
+          onSave={handleSaveParameter}
+        />
       )}
     </div>
   );

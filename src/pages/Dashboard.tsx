@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useFarmContext } from '@/hooks/useFarm';
 import { useAnimals } from '@/hooks/useAnimals';
 import { useEvents } from '@/hooks/useEvents';
+import { useMetrics } from '@/hooks/useMetrics';
+import { useParameters } from '@/hooks/useParameters';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { LoadingPage } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -9,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Beef, Calendar, TrendingUp, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { MetricCard as MetricCardType, DashboardData } from '@/types/database';
+import type { MetricCard as MetricCardType } from '@/types/database';
 import {
   BarChart,
   Bar,
@@ -29,98 +31,33 @@ export default function Dashboard() {
   const { currentFarm, loading: farmLoading } = useFarmContext();
   const { animals, loading: animalsLoading } = useAnimals({ farmId: currentFarm?.id });
   const { events, loading: eventsLoading } = useEvents({ farmId: currentFarm?.id });
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const { getParametersMap } = useParameters({ farmId: currentFarm?.id });
+  const { definitions, calculateMetrics, loading: metricsLoading } = useMetrics({ 
+    farmId: currentFarm?.id,
+    parameters: getParametersMap(),
+  });
+  
+  const [metricCards, setMetricCards] = useState<MetricCardType[]>([]);
 
-  const loading = farmLoading || animalsLoading || eventsLoading;
+  const loading = farmLoading || animalsLoading || eventsLoading || metricsLoading;
 
   useEffect(() => {
-    if (animals.length === 0) {
-      setDashboardData(null);
-      return;
-    }
+    const calculate = async () => {
+      if (definitions.length > 0 && animals.length > 0) {
+        const cards = await calculateMetrics(animals, events);
+        setMetricCards(cards);
+      } else {
+        setMetricCards([]);
+      }
+    };
+    calculate();
+  }, [definitions, animals, events, calculateMetrics]);
 
-    // Calculate dashboard metrics
-    const totalAnimals = animals.length;
-    const pregnantCount = animals.filter(a => a.reproductive_status === 'prenha').length;
-    const inseminatedCount = animals.filter(a => a.reproductive_status === 'inseminada').length;
-    const emptyCount = animals.filter(a => a.reproductive_status === 'vazia').length;
-    const dryCount = animals.filter(a => a.reproductive_status === 'seca').length;
-
-    const animalsWithDEL = animals.filter(a => a.current_del != null);
-    const averageDEL = animalsWithDEL.length > 0
-      ? animalsWithDEL.reduce((sum, a) => sum + (a.current_del || 0), 0) / animalsWithDEL.length
-      : undefined;
-
-    const animalsWithDEA = animals.filter(a => a.current_dea != null);
-    const averageDEA = animalsWithDEA.length > 0
-      ? animalsWithDEA.reduce((sum, a) => sum + (a.current_dea || 0), 0) / animalsWithDEA.length
-      : undefined;
-
-    // Calculate pregnancy rate
-    const eligibleAnimals = animals.filter(a => 
-      a.reproductive_status !== 'seca' && a.productive_status === 'lactacao'
-    );
-    const pregnancyRate = eligibleAnimals.length > 0
-      ? (pregnantCount / eligibleAnimals.length) * 100
-      : 0;
-
-    // Create metric cards
-    const metrics: MetricCardType[] = [
-      {
-        id: '1',
-        name: 'taxa_prenhez',
-        displayName: 'Taxa de Prenhez',
-        value: pregnancyRate,
-        format: 'percentage',
-        decimals: 1,
-        targetValue: 25,
-        warningThreshold: 18,
-        higherIsBetter: true,
-        status: pregnancyRate >= 25 ? 'good' : pregnancyRate >= 18 ? 'warning' : 'bad',
-      },
-      {
-        id: '2',
-        name: 'del_medio',
-        displayName: 'DEL Médio',
-        value: averageDEL || null,
-        format: 'integer',
-        unit: 'dias',
-        targetValue: 150,
-        higherIsBetter: false,
-        status: averageDEL ? (averageDEL <= 150 ? 'good' : averageDEL <= 180 ? 'warning' : 'bad') : 'neutral',
-      },
-      {
-        id: '3',
-        name: 'dea_medio',
-        displayName: 'DEA Médio',
-        value: averageDEA || null,
-        format: 'integer',
-        unit: 'dias',
-        targetValue: 120,
-        higherIsBetter: false,
-        status: averageDEA ? (averageDEA <= 120 ? 'good' : averageDEA <= 150 ? 'warning' : 'bad') : 'neutral',
-      },
-      {
-        id: '4',
-        name: 'vacas_prenhas',
-        displayName: 'Vacas Prenhas',
-        value: pregnantCount,
-        format: 'integer',
-        higherIsBetter: true,
-        status: 'neutral',
-      },
-    ];
-
-    setDashboardData({
-      metrics,
-      animalsCount: totalAnimals,
-      pregnantCount,
-      inseminatedCount,
-      emptyCount,
-      averageDEL,
-      averageDEA,
-    });
-  }, [animals]);
+  // Calculate counts for charts
+  const pregnantCount = animals.filter(a => a.reproductive_status === 'prenha').length;
+  const inseminatedCount = animals.filter(a => a.reproductive_status === 'inseminada').length;
+  const emptyCount = animals.filter(a => a.reproductive_status === 'vazia').length;
+  const dryCount = animals.filter(a => a.reproductive_status === 'seca').length;
 
   if (loading) {
     return <LoadingPage message="Carregando dashboard..." />;
@@ -155,16 +92,19 @@ export default function Dashboard() {
   }
 
   const statusData = [
-    { name: 'Prenhas', value: dashboardData?.pregnantCount || 0, color: 'hsl(var(--success))' },
-    { name: 'Inseminadas', value: dashboardData?.inseminatedCount || 0, color: 'hsl(var(--info))' },
-    { name: 'Vazias', value: dashboardData?.emptyCount || 0, color: 'hsl(var(--destructive))' },
-    { name: 'Secas', value: animals.filter(a => a.reproductive_status === 'seca').length, color: 'hsl(var(--muted-foreground))' },
+    { name: 'Prenhas', value: pregnantCount, color: 'hsl(var(--success))' },
+    { name: 'Inseminadas', value: inseminatedCount, color: 'hsl(var(--info))' },
+    { name: 'Vazias', value: emptyCount, color: 'hsl(var(--destructive))' },
+    { name: 'Secas', value: dryCount, color: 'hsl(var(--muted-foreground))' },
   ];
 
   const categoryData = [
     { name: 'Vacas', value: animals.filter(a => a.category === 'vaca').length },
     { name: 'Novilhas', value: animals.filter(a => a.category === 'novilha').length },
   ];
+
+  // Get main metrics for display (first 4)
+  const displayMetrics = metricCards.slice(0, 4);
 
   return (
     <div className="space-y-6">
@@ -182,9 +122,43 @@ export default function Dashboard() {
 
       {/* Metrics grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {dashboardData?.metrics.map((metric) => (
-          <MetricCard key={metric.id} metric={metric} />
-        ))}
+        {displayMetrics.length > 0 ? (
+          displayMetrics.map((metric) => (
+            <MetricCard key={metric.id} metric={metric} />
+          ))
+        ) : (
+          <>
+            {/* Fallback cards when no metric definitions */}
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">Taxa de Prenhez</p>
+                <p className="text-2xl font-bold">
+                  {animals.length > 0 
+                    ? `${((pregnantCount / animals.filter(a => a.productive_status === 'lactacao').length) * 100 || 0).toFixed(1)}%`
+                    : '—'}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">Total Animais</p>
+                <p className="text-2xl font-bold">{animals.length}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">Prenhas</p>
+                <p className="text-2xl font-bold">{pregnantCount}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">Vazias</p>
+                <p className="text-2xl font-bold">{emptyCount}</p>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Charts */}
@@ -256,7 +230,7 @@ export default function Dashboard() {
                 <Beef className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{dashboardData?.animalsCount}</p>
+                <p className="text-2xl font-bold">{animals.length}</p>
                 <p className="text-sm text-muted-foreground">Total de Animais</p>
               </div>
             </div>
@@ -270,7 +244,7 @@ export default function Dashboard() {
                 <TrendingUp className="w-6 h-6 text-success" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{dashboardData?.pregnantCount}</p>
+                <p className="text-2xl font-bold">{pregnantCount}</p>
                 <p className="text-sm text-muted-foreground">Prenhas</p>
               </div>
             </div>
@@ -284,7 +258,7 @@ export default function Dashboard() {
                 <Calendar className="w-6 h-6 text-info" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{dashboardData?.inseminatedCount}</p>
+                <p className="text-2xl font-bold">{inseminatedCount}</p>
                 <p className="text-sm text-muted-foreground">Inseminadas</p>
               </div>
             </div>
@@ -298,7 +272,7 @@ export default function Dashboard() {
                 <AlertCircle className="w-6 h-6 text-destructive" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{dashboardData?.emptyCount}</p>
+                <p className="text-2xl font-bold">{emptyCount}</p>
                 <p className="text-sm text-muted-foreground">Vazias</p>
               </div>
             </div>
