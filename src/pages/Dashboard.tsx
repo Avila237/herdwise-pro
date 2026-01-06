@@ -31,27 +31,32 @@ export default function Dashboard() {
   const { currentFarm, loading: farmLoading } = useFarmContext();
   const { animals, loading: animalsLoading } = useAnimals({ farmId: currentFarm?.id });
   const { events, loading: eventsLoading } = useEvents({ farmId: currentFarm?.id });
-  const { getParametersMap } = useParameters({ farmId: currentFarm?.id });
+  const { parameters, loading: paramsLoading, getParametersMap } = useParameters({ farmId: currentFarm?.id });
   const { definitions, calculateMetrics, loading: metricsLoading } = useMetrics({ 
     farmId: currentFarm?.id,
-    parameters: getParametersMap(),
   });
   
   const [metricCards, setMetricCards] = useState<MetricCardType[]>([]);
 
-  const loading = farmLoading || animalsLoading || eventsLoading || metricsLoading;
+  const loading = farmLoading || animalsLoading || eventsLoading || metricsLoading || paramsLoading;
 
   useEffect(() => {
     const calculate = async () => {
-      if (definitions.length > 0 && animals.length > 0) {
-        const cards = await calculateMetrics(animals, events);
-        setMetricCards(cards);
+      if (definitions.length > 0 && animals.length > 0 && !paramsLoading) {
+        try {
+          const params = getParametersMap();
+          const cards = await calculateMetrics(animals, events, params);
+          setMetricCards(cards);
+        } catch (err) {
+          console.error('Error calculating metrics:', err);
+          setMetricCards([]);
+        }
       } else {
         setMetricCards([]);
       }
     };
     calculate();
-  }, [definitions, animals, events, calculateMetrics]);
+  }, [definitions, animals, events, calculateMetrics, parameters, paramsLoading, getParametersMap]);
 
   // Calculate counts for charts
   const pregnantCount = animals.filter(a => a.reproductive_status === 'prenha').length;
