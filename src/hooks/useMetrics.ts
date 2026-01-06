@@ -6,7 +6,6 @@ import type { MetricDefinition, MetricResult, MetricCard, Animal, Event } from '
 interface UseMetricsOptions {
   farmId?: string;
   lotId?: string;
-  parameters?: Record<string, string | number | boolean>;
 }
 
 export function useMetrics(options: UseMetricsOptions = {}) {
@@ -41,7 +40,8 @@ export function useMetrics(options: UseMetricsOptions = {}) {
 
   const calculateMetrics = useCallback(async (
     animals: Animal[],
-    events: Event[]
+    events: Event[],
+    parameters: Record<string, string | number | boolean> = {}
   ): Promise<MetricCard[]> => {
     const cards: MetricCard[] = [];
 
@@ -62,7 +62,7 @@ export function useMetrics(options: UseMetricsOptions = {}) {
             type: e.event_type,
             date: e.event_date,
           })),
-          parameters: options.parameters || {},
+          parameters,
         };
 
         const value = evaluateFormula(def.formula, context);
@@ -108,7 +108,7 @@ export function useMetrics(options: UseMetricsOptions = {}) {
     }
 
     return cards;
-  }, [definitions, options.parameters]);
+  }, [definitions]);
 
   const createDefinition = async (data: Partial<MetricDefinition>): Promise<MetricDefinition | null> => {
     if (!options.farmId) return null;
