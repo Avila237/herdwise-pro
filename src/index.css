@@ -1,96 +1,138 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* ============================================
+   SISTEMA DE GESTÃO REPRODUTIVA BOVINA
+   Design System - Tema Agropecuário Moderno
+   ============================================ */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Cores principais - Verde rural/agrícola */
+    --primary: 142 45% 28%; /* Verde escuro rural */
+    --primary-foreground: 0 0% 98%;
+    
+    /* Background - Tom creme/terra suave */
+    --background: 40 25% 97%;
+    --foreground: 30 15% 15%;
+    
+    /* Cards - Branco levemente aquecido */
+    --card: 40 20% 99%;
+    --card-foreground: 30 15% 15%;
+    
+    /* Popover */
+    --popover: 40 20% 99%;
+    --popover-foreground: 30 15% 15%;
+    
+    /* Secondary - Verde mais claro */
+    --secondary: 142 30% 92%;
+    --secondary-foreground: 142 45% 20%;
+    
+    /* Muted */
+    --muted: 40 15% 93%;
+    --muted-foreground: 30 10% 45%;
+    
+    /* Accent - Dourado/âmbar rural */
+    --accent: 38 90% 50%;
+    --accent-foreground: 30 15% 10%;
+    
+    /* Status colors */
+    --success: 142 60% 40%;
+    --success-foreground: 0 0% 98%;
+    --warning: 38 95% 50%;
+    --warning-foreground: 30 15% 10%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 98%;
+    
+    /* Borders */
+    --border: 40 15% 88%;
+    --input: 40 15% 88%;
+    --ring: 142 45% 28%;
+    
+    /* Radius */
+    --radius: 0.625rem;
+    
+    /* Sidebar */
+    --sidebar-background: 142 35% 18%;
+    --sidebar-foreground: 142 10% 92%;
+    --sidebar-primary: 38 90% 55%;
+    --sidebar-primary-foreground: 30 15% 10%;
+    --sidebar-accent: 142 30% 25%;
+    --sidebar-accent-foreground: 142 10% 92%;
+    --sidebar-border: 142 25% 25%;
+    --sidebar-ring: 38 90% 55%;
+    
+    /* Chart colors */
+    --chart-1: 142 60% 40%;
+    --chart-2: 38 90% 50%;
+    --chart-3: 199 89% 48%;
+    --chart-4: 0 72% 51%;
+    --chart-5: 280 65% 60%;
+    
+    /* Custom tokens */
+    --metric-good: 142 60% 40%;
+    --metric-bad: 0 72% 51%;
+    --metric-neutral: 38 95% 50%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --primary: 142 50% 45%;
+    --primary-foreground: 0 0% 5%;
+    
+    --background: 30 15% 8%;
+    --foreground: 40 15% 92%;
+    
+    --card: 30 15% 12%;
+    --card-foreground: 40 15% 92%;
+    
+    --popover: 30 15% 12%;
+    --popover-foreground: 40 15% 92%;
+    
+    --secondary: 142 20% 20%;
+    --secondary-foreground: 142 30% 85%;
+    
+    --muted: 30 10% 18%;
+    --muted-foreground: 30 10% 60%;
+    
+    --accent: 38 85% 55%;
+    --accent-foreground: 30 15% 5%;
+    
+    --success: 142 55% 50%;
+    --success-foreground: 0 0% 5%;
+    --warning: 38 90% 55%;
+    --warning-foreground: 30 15% 5%;
+    --destructive: 0 65% 45%;
+    --destructive-foreground: 0 0% 98%;
+    --info: 199 80% 55%;
+    --info-foreground: 0 0% 5%;
+    
+    --border: 30 10% 22%;
+    --input: 30 10% 22%;
+    --ring: 142 50% 45%;
+    
+    --sidebar-background: 30 15% 6%;
+    --sidebar-foreground: 40 15% 88%;
+    --sidebar-primary: 38 85% 55%;
+    --sidebar-primary-foreground: 30 15% 5%;
+    --sidebar-accent: 30 12% 15%;
+    --sidebar-accent-foreground: 40 15% 88%;
+    --sidebar-border: 30 10% 18%;
+    --sidebar-ring: 38 85% 55%;
+    
+    --chart-1: 142 55% 50%;
+    --chart-2: 38 85% 55%;
+    --chart-3: 199 80% 55%;
+    --chart-4: 0 65% 50%;
+    --chart-5: 280 60% 65%;
+    
+    --metric-good: 142 55% 50%;
+    --metric-bad: 0 65% 50%;
+    --metric-neutral: 38 85% 55%;
   }
 }
 
@@ -100,6 +142,94 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  /* Status badges */
+  .status-prenha {
+    @apply bg-success/15 text-success border-success/30;
+  }
+  
+  .status-vazia {
+    @apply bg-destructive/15 text-destructive border-destructive/30;
+  }
+  
+  .status-inseminada {
+    @apply bg-info/15 text-info border-info/30;
+  }
+  
+  .status-seca {
+    @apply bg-muted text-muted-foreground border-border;
+  }
+  
+  /* Metric cards */
+  .metric-card {
+    @apply rounded-lg border bg-card p-4 shadow-sm transition-all hover:shadow-md;
+  }
+  
+  .metric-good {
+    @apply border-l-4 border-l-success;
+  }
+  
+  .metric-bad {
+    @apply border-l-4 border-l-destructive;
+  }
+  
+  .metric-neutral {
+    @apply border-l-4 border-l-warning;
+  }
+  
+  /* Table styles */
+  .data-table {
+    @apply w-full text-sm;
+  }
+  
+  .data-table th {
+    @apply bg-muted/50 px-4 py-3 text-left font-medium text-muted-foreground;
+  }
+  
+  .data-table td {
+    @apply px-4 py-3 border-b border-border;
+  }
+  
+  .data-table tr:hover td {
+    @apply bg-muted/30;
+  }
+  
+  /* Sidebar active state */
+  .sidebar-item-active {
+    @apply bg-sidebar-accent text-sidebar-accent-foreground;
+  }
+}
+
+@layer utilities {
+  /* Scrollbar styling */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
   }
 }
