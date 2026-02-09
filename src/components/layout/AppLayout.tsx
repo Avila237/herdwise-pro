@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { DemoBanner } from '@/components/common/DemoBanner';
 
 interface NavItemProps {
   to: string;
@@ -72,7 +73,9 @@ export function AppLayout({ children }: AppLayoutProps) {
   ];
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex flex-col min-h-screen">
+      <DemoBanner />
+      <div className="flex flex-1">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -179,6 +182,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <main className="flex-1 p-6 overflow-auto">
           {children}
         </main>
+      </div>
       </div>
     </div>
   );

@@ -1,41 +1,16 @@
-import { useState } from 'react';
 import { useFarmContext } from '@/hooks/useFarm';
 import { useLots } from '@/hooks/useLots';
 import { useParameters } from '@/hooks/useParameters';
 import { LoadingPage } from '@/components/common/LoadingSpinner';
 import { ParameterEditor } from '@/components/settings/ParameterEditor';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Info } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { toast } = useToast();
-  const { currentFarm, farms, createFarm, loading: farmLoading } = useFarmContext();
-  const { lots, createLot, deleteLot } = useLots({ farmId: currentFarm?.id });
+  const { currentFarm, farms, loading: farmLoading } = useFarmContext();
+  const { lots } = useLots({ farmId: currentFarm?.id });
   const { parameters, setParameter, loading: paramsLoading } = useParameters({ farmId: currentFarm?.id });
-
-  const [newFarmName, setNewFarmName] = useState('');
-  const [newLotName, setNewLotName] = useState('');
-
-  const handleCreateFarm = async () => {
-    if (!newFarmName.trim()) return;
-    const farm = await createFarm(newFarmName.trim());
-    if (farm) {
-      toast({ title: 'Fazenda criada com sucesso' });
-      setNewFarmName('');
-    }
-  };
-
-  const handleCreateLot = async () => {
-    if (!newLotName.trim()) return;
-    const lot = await createLot(newLotName.trim());
-    if (lot) {
-      toast({ title: 'Lote criado com sucesso' });
-      setNewLotName('');
-    }
-  };
 
   const handleSaveParameter = async (name: string, value: string) => {
     return await setParameter(name, value, 'number');
@@ -47,25 +22,22 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      {/* Farm Management */}
+      {/* Demo Alert */}
+      <Alert className="border-warning/50 bg-warning/10">
+        <Info className="h-4 w-4 text-warning" />
+        <AlertDescription className="text-foreground">
+          <strong>Modo Demonstração:</strong> A criação e edição de fazendas está desabilitada. 
+          Explore as funcionalidades do sistema com os dados fictícios disponíveis.
+        </AlertDescription>
+      </Alert>
+
+      {/* Farm Display (Read-only) */}
       <Card>
         <CardHeader>
-          <CardTitle>Fazendas</CardTitle>
-          <CardDescription>Gerencie as fazendas do sistema</CardDescription>
+          <CardTitle>Fazenda</CardTitle>
+          <CardDescription>Fazenda configurada para demonstração</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-3">
-            <Input
-              placeholder="Nome da nova fazenda"
-              value={newFarmName}
-              onChange={(e) => setNewFarmName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateFarm()}
-            />
-            <Button onClick={handleCreateFarm}>
-              <Plus className="w-4 h-4 mr-2" />
-              Criar
-            </Button>
-          </div>
+        <CardContent>
           <div className="space-y-2">
             {farms.map((farm) => (
               <div key={farm.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
@@ -82,36 +54,21 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Lot Management */}
+      {/* Lots Display (Read-only) */}
       {currentFarm && (
         <Card>
           <CardHeader>
             <CardTitle>Lotes</CardTitle>
-            <CardDescription>Gerencie os lotes da fazenda {currentFarm.name}</CardDescription>
+            <CardDescription>Lotes cadastrados na {currentFarm.name}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-3">
-              <Input
-                placeholder="Nome do novo lote"
-                value={newLotName}
-                onChange={(e) => setNewLotName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleCreateLot()}
-              />
-              <Button onClick={handleCreateLot}>
-                <Plus className="w-4 h-4 mr-2" />
-                Criar
-              </Button>
-            </div>
+          <CardContent>
             <div className="space-y-2">
               {lots.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Nenhum lote cadastrado</p>
               ) : (
                 lots.map((lot) => (
-                  <div key={lot.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <div key={lot.id} className="p-3 rounded-lg bg-muted/50">
                     <p className="font-medium">{lot.name}</p>
-                    <Button variant="ghost" size="icon" onClick={() => deleteLot(lot.id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
                   </div>
                 ))
               )}
