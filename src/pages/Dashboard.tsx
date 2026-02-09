@@ -113,6 +113,25 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Demo Welcome Card */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-4">
+            <div className="p-3 rounded-lg bg-primary/10">
+              <Beef className="w-8 h-8 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold mb-1">Bem-vindo à Demo do ReproGestão!</h2>
+              <p className="text-sm text-muted-foreground">
+                Esta é uma versão de demonstração com dados fictícios. Explore todas as funcionalidades: 
+                cadastre animais, registre eventos reprodutivos, acompanhe métricas e muito mais. 
+                Os dados apresentados são ilustrativos e podem ser manipulados livremente.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Header actions */}
       <div className="flex flex-wrap gap-3">
         <Button onClick={() => navigate('/animals')}>
